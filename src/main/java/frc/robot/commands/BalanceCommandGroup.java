@@ -12,9 +12,7 @@ public class BalanceCommandGroup extends CommandBase{
     private final Drive drive;
 
     // PID
-    private final PIDController pid = new PIDController(0.02, 0.002, 0.01);
-
-    private boolean readyToFinish = false; 
+    private final PIDController pid = new PIDController(0.3, 0.0017, 0.028);
 
     // CLASS CONSTRUCTOR
     public BalanceCommandGroup(Drive drive){
@@ -25,22 +23,21 @@ public class BalanceCommandGroup extends CommandBase{
 
     public double calculateP(){
         double error;
-        if (drive.getRoll() < 2.5 && -2.5 < drive.getRoll()){
+        if (drive.getRoll() < 2.5 && -3.5 < drive.getRoll()){
             error = 0;
         }
         else{
-            //can try change setpoint 
             error = pid.calculate(drive.getRoll(), 0);
         }
 
-        if (error > 0.5){
-            return 0.5;
+        if (error > 0.6){
+            return 0.6;
         }
-        else if (error < -0.5){
-            return -0.5;
+        else if (error < -0.6){
+            return -0.6;
         }
         else{
-            return error;
+            return error + 0.4;
         }
     }
 
@@ -62,13 +59,12 @@ public class BalanceCommandGroup extends CommandBase{
 
     @Override
     public void initialize(){
-        readyToFinish = false; 
     }
 
     @Override
     public void execute(){
 
-        drive.tank(calculateP(), calculateP());
+        drive.tank(0.95 * calculateP(), calculateP());
         SmartDashboard.putNumber("Output Speed", calculateP());
         SmartDashboard.putNumber("Motor Speed", drive.getSpeed());
 
@@ -81,12 +77,6 @@ public class BalanceCommandGroup extends CommandBase{
 
     @Override
     public boolean isFinished(){
-        double rollValue = drive.getRoll(); 
-        if (!readyToFinish && rollValue < -14) {
-            readyToFinish = true; 
-        } else if (readyToFinish && rollValue >= -12) {
-            return true; 
-        } 
         return false; 
     }
 
